@@ -30,6 +30,7 @@ bool duplicates(const char* filename) {
     
     char* buffer = new char[length];
     fread(buffer, 1, length, file);
+    fclose(file);
     
     // Loop through all the lines.
     for (long i=0; i<length; i+=8) {
@@ -42,16 +43,12 @@ bool duplicates(const char* filename) {
                            + (buffer[i+5] - '0');
         
         // Check if number has already been marked.
-        if (leafNodes[index]) {
-            fclose(file);
+        if (leafNodes[index])
             return true;
-        }
         
         // Otherwise, mark it.
         leafNodes[index] = true;
     }
-    
-    fclose(file);
     
     return false;
 }
