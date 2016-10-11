@@ -22,29 +22,27 @@ bool leafNodes[leafNodeCount] = {};
  * @return Whether there were any duplicates.
  */
 bool duplicates(const char* filename) {
-    char buffer[8];
-    
+    // Read the entire file into RAM.
     FILE* file = fopen(filename, "rb");
+    fseek(file, 0, SEEK_END);
+    long length = ftell(file); 
+    rewind(file);
     
-    while (!feof(file)) {
-        // Read next registration number.
-        if (fread(buffer, 1, 8, file) != 8)
-            break;
-        
+    char* buffer = new char[length];
+    fread(buffer, 1, length, file);
+    
+    // Loop through all the lines.
+    for (long i=0; i<length; i+=8) {
         // Find tree index.
-        unsigned int index = (buffer[0] - 'A') * 10 * 10 * 10 * 26 * 26
-                           + (buffer[1] - 'A') * 10 * 10 * 10 * 26
-                           + (buffer[2] - 'A') * 10 * 10 * 10
-                           + (buffer[3] - '0') * 10 * 10
-                           + (buffer[4] - '0') * 10
-                           + (buffer[5] - '0');
+        unsigned int index = (buffer[i]   - 'A') * 10 * 10 * 10 * 26 * 26
+                           + (buffer[i+1] - 'A') * 10 * 10 * 10 * 26
+                           + (buffer[i+2] - 'A') * 10 * 10 * 10
+                           + (buffer[i+3] - '0') * 10 * 10
+                           + (buffer[i+4] - '0') * 10
+                           + (buffer[i+5] - '0');
         
         // Check if number has already been marked.
         if (leafNodes[index]) {
-            for (int i=0; i<6; ++i)
-                putc(buffer[i], stdout);
-            cout << endl;
-            
             fclose(file);
             return true;
         }
