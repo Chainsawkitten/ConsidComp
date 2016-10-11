@@ -32,13 +32,12 @@ bool duplicates(const char* filename) {
             break;
         
         // Find tree index.
-        unsigned int index = 0;
-        index += (buffer[0] - 'A') * 10 * 10 * 10 * 26 * 26;
-        index += (buffer[1] - 'A') * 10 * 10 * 10 * 26;
-        index += (buffer[2] - 'A') * 10 * 10 * 10;
-        index += (buffer[3] - '0') * 10 * 10;
-        index += (buffer[4] - '0') * 10;
-        index += (buffer[5] - '0');
+        unsigned int index = (buffer[0] - 'A') * 10 * 10 * 10 * 26 * 26
+                           + (buffer[1] - 'A') * 10 * 10 * 10 * 26
+                           + (buffer[2] - 'A') * 10 * 10 * 10
+                           + (buffer[3] - '0') * 10 * 10
+                           + (buffer[4] - '0') * 10
+                           + (buffer[5] - '0');
         
         // Check if number has already been marked.
         if (leafNodes[index]) {
