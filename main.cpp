@@ -1,7 +1,19 @@
 #include <iostream>
 #include <chrono>
+#include <cstring>
 
 using namespace std;
+
+/**
+ * @brief The amount of leaf nodes in the tree.
+ * 26^3 * 10^3
+ */
+const unsigned int leafNodeCount = 17576000;
+
+/**
+ * @brief The tree leaf nodes.
+ */
+bool leafNodes[leafNodeCount] = {};
 
 /**
  * @brief Checks whether the file contains any duplicate entries.
@@ -10,7 +22,39 @@ using namespace std;
  * @return Whether there were any duplicates.
  */
 bool duplicates(const char* filename) {
-    /// @todo Implement the actual function.
+    char buffer[8];
+    
+    FILE* file = fopen(filename, "rb");
+    
+    while (!feof(file)) {
+        // Read next registration number.
+        if (fread(buffer, 1, 8, file) != 8)
+            break;
+        
+        // Find tree index.
+        unsigned int index = 0;
+        index += (buffer[0] - 'A') * 10 * 10 * 10 * 26 * 26;
+        index += (buffer[1] - 'A') * 10 * 10 * 10 * 26;
+        index += (buffer[2] - 'A') * 10 * 10 * 10;
+        index += (buffer[3] - '0') * 10 * 10;
+        index += (buffer[4] - '0') * 10;
+        index += (buffer[5] - '0');
+        
+        // Check if number has already been marked.
+        if (leafNodes[index]) {
+            for (int i=0; i<6; ++i)
+                putc(buffer[i], stdout);
+            cout << endl;
+            
+            fclose(file);
+            return true;
+        }
+        
+        // Otherwise, mark it.
+        leafNodes[index] = true;
+    }
+    
+    fclose(file);
     
     return false;
 }
