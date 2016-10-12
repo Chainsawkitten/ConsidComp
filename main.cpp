@@ -3,7 +3,6 @@
 #include <cstring>
 #include <thread>
 #include <functional>
-#include <atomic>
 
 using namespace std;
 
@@ -19,6 +18,11 @@ const unsigned int leafNodeCount = 17576000;
 unsigned char leafNodes[leafNodeCount] = {};
 
 /**
+ * @brief Buffer that the data file is read into.
+ */
+char* buffer;
+
+/**
  * @brief Whether a duplicate has been found.
  */
 bool duplicateFound = false;
@@ -30,12 +34,11 @@ bool threadDone[3];
 
 /**
  * @brief Checks whether there are any duplicates in a subset of the buffer.
- * @param buffer File buffer.
  * @param startPos Position in the buffer to start at.
- * @param ensPos Position in the buffer to end at.
+ * @param endPos Position in the buffer to end at.
  * @param threadIndex The index of the executing thread.
  */
-void duplicateThread(const char* buffer, long startPos, long endPos, unsigned char threadIndex) {
+void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
     unsigned int* indices = new unsigned int[(endPos - startPos) / 8];
     
     // Loop through all the lines.
@@ -84,7 +87,7 @@ bool duplicates(const char* filename) {
     long length = ftell(file); 
     rewind(file);
     
-    char* buffer = new char[length];
+    buffer = new char[length];
     fread(buffer, 1, length, file);
     fclose(file);
     
@@ -92,9 +95,9 @@ bool duplicates(const char* filename) {
     duplicateFound = false;
     long len2 = length / 8;
     long len3 = len2 / 3 * 8;
-    thread thread1(std::bind(&duplicateThread, buffer, 0, len3, 0));
-    thread thread2(std::bind(&duplicateThread, buffer, len3, len3 * 2, 1));
-    thread thread3(std::bind(&duplicateThread, buffer, len3 * 2, length, 2));
+    thread thread1(std::bind(&duplicateThread, 0, len3, 0));
+    thread thread2(std::bind(&duplicateThread, len3, len3 * 2, 1));
+    thread thread3(std::bind(&duplicateThread, len3 * 2, length, 2));
     
     // Clean up and return results.
     thread1.join();
