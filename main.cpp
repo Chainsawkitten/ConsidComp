@@ -16,7 +16,7 @@ const unsigned int leafNodeCount = 17576000;
 /**
  * @brief The tree leaf nodes.
  */
-std::atomic<unsigned char> leafNodes[leafNodeCount] = {};
+unsigned char leafNodes[leafNodeCount] = {};
 
 /**
  * @brief Whether a duplicate has been found.
@@ -24,12 +24,18 @@ std::atomic<unsigned char> leafNodes[leafNodeCount] = {};
 bool duplicateFound = false;
 
 /**
+ * @brief Which threads are done executing.
+ */
+bool threadDone[3];
+
+/**
  * @brief Checks whether there are any duplicates in a subset of the buffer.
  * @param buffer File buffer.
  * @param startPos Position in the buffer to start at.
  * @param ensPos Position in the buffer to end at.
+ * @param threadIndex The index of the executing thread.
  */
-void duplicateThread(const char* buffer, long startPos, long endPos) {
+void duplicateThread(const char* buffer, long startPos, long endPos, unsigned char threadIndex) {
     // Loop through all the lines.
     for (long i = startPos; i < endPos; i += 8) {
         // Find tree index.
@@ -40,10 +46,31 @@ void duplicateThread(const char* buffer, long startPos, long endPos) {
                            + (buffer[i+4] - '0') * 10
                            + (buffer[i+5] - '0');
         
-        // Check if number has already been marked.
-        leafNodes[index].fetch_add(1, std::memory_order_relaxed);
+        // Mark tree node as our index.
+        leafNodes[index] = threadIndex;
+    }
+    
+    // Signal that we're done.
+    threadDone[threadIndex] = true;
+    
+    // Wait for all threads to finish.
+    for (unsigned char i=0; i<3; ++i) {
+        while (!threadDone[i])
+            this_thread::yield();
+    }
+    
+    // Check if someone has modified our tree nodes.
+    for (long i = startPos; i < endPos; i += 8) {
+        // Find tree index.
+        unsigned int index = (buffer[i]   - 'A') * 10 * 10 * 10 * 26 * 26
+                           + (buffer[i+1] - 'A') * 10 * 10 * 10 * 26
+                           + (buffer[i+2] - 'A') * 10 * 10 * 10
+                           + (buffer[i+3] - '0') * 10 * 10
+                           + (buffer[i+4] - '0') * 10
+                           + (buffer[i+5] - '0');
         
-        if (leafNodes[index].load(std::memory_order_relaxed) > 1) {
+        // Check if someone has modified our tree node.
+        if (leafNodes[index] != threadIndex) {
             duplicateFound = true;
             return;
         }
@@ -71,9 +98,9 @@ bool duplicates(const char* filename) {
     duplicateFound = false;
     long len2 = length / 8;
     long len3 = len2 / 3 * 8;
-    thread thread1(std::bind(&duplicateThread, buffer, 0, len3));
-    thread thread2(std::bind(&duplicateThread, buffer, len3, len3 * 2));
-    thread thread3(std::bind(&duplicateThread, buffer, len3 * 2, length));
+    thread thread1(std::bind(&duplicateThread, buffer, 0, len3, 0));
+    thread thread2(std::bind(&duplicateThread, buffer, len3, len3 * 2, 1));
+    thread thread3(std::bind(&duplicateThread, buffer, len3 * 2, length, 2));
     
     // Clean up and return results.
     thread1.join();
@@ -103,6 +130,7 @@ int main(int argc, char** argv) {
     // Perform the program.
     for (int i=0; i<times; ++i) {
         memset(leafNodes, 0, sizeof(bool) * leafNodeCount);
+        memset(threadDone, 0, sizeof(unsigned char) * 3);
         cout << (duplicates(argv[1]) ? "Dubletter" : "Ej dubblett") << endl;
     }
     
