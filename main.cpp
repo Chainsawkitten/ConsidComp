@@ -36,18 +36,20 @@ bool threadDone[3];
  * @param threadIndex The index of the executing thread.
  */
 void duplicateThread(const char* buffer, long startPos, long endPos, unsigned char threadIndex) {
+    unsigned int* indices = new unsigned int[(endPos - startPos) / 8];
+    
     // Loop through all the lines.
     for (long i = startPos; i < endPos; i += 8) {
         // Find tree index.
-        unsigned int index = (buffer[i]   - 'A') * 10 * 10 * 10 * 26 * 26
-                           + (buffer[i+1] - 'A') * 10 * 10 * 10 * 26
-                           + (buffer[i+2] - 'A') * 10 * 10 * 10
-                           + (buffer[i+3] - '0') * 10 * 10
-                           + (buffer[i+4] - '0') * 10
-                           + (buffer[i+5] - '0');
+        indices[(i - startPos) / 8] = (buffer[i]   - 'A') * 10 * 10 * 10 * 26 * 26
+                       + (buffer[i+1] - 'A') * 10 * 10 * 10 * 26
+                       + (buffer[i+2] - 'A') * 10 * 10 * 10
+                       + (buffer[i+3] - '0') * 10 * 10
+                       + (buffer[i+4] - '0') * 10
+                       + (buffer[i+5] - '0');
         
         // Mark tree node as our index.
-        leafNodes[index] = threadIndex;
+        leafNodes[indices[(i - startPos) / 8]] = threadIndex;
     }
     
     // Signal that we're done.
@@ -61,16 +63,8 @@ void duplicateThread(const char* buffer, long startPos, long endPos, unsigned ch
     
     // Check if someone has modified our tree nodes.
     for (long i = startPos; i < endPos; i += 8) {
-        // Find tree index.
-        unsigned int index = (buffer[i]   - 'A') * 10 * 10 * 10 * 26 * 26
-                           + (buffer[i+1] - 'A') * 10 * 10 * 10 * 26
-                           + (buffer[i+2] - 'A') * 10 * 10 * 10
-                           + (buffer[i+3] - '0') * 10 * 10
-                           + (buffer[i+4] - '0') * 10
-                           + (buffer[i+5] - '0');
-        
         // Check if someone has modified our tree node.
-        if (leafNodes[index] != threadIndex) {
+        if (leafNodes[indices[(i - startPos) / 8]] != threadIndex) {
             duplicateFound = true;
             return;
         }
