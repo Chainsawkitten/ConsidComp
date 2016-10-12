@@ -65,15 +65,20 @@ int main(int argc, char** argv) {
         return 1;
     }
     
+    const int times = 10;
+    
     // Get start time.
     chrono::time_point<chrono::high_resolution_clock> start = chrono::high_resolution_clock::now();;
     
     // Perform the program.
-    cout << (duplicates(argv[1]) ? "Dubletter" : "Ej dubblett") << endl;
+    for (int i=0; i<times; ++i) {
+        memset(leafNodes, 0, sizeof(bool) * leafNodeCount);
+        cout << (duplicates(argv[1]) ? "Dubletter" : "Ej dubblett") << endl;
+    }
     
     // Output how long it took.
     double dt = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count();
-    cout << "Took " << dt << " ms" << std::endl;
+    cout << "Took " << dt << " ms (average " << dt / times << "ms)" << std::endl;
     
     return 0;
 }
