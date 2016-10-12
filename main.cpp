@@ -1,6 +1,9 @@
 #include <iostream>
 #include <chrono>
 #include <cstring>
+#include <thread>
+#include <functional>
+#include <atomic>
 
 using namespace std;
 
@@ -13,7 +16,39 @@ const unsigned int leafNodeCount = 17576000;
 /**
  * @brief The tree leaf nodes.
  */
-bool leafNodes[leafNodeCount] = {};
+std::atomic<unsigned char> leafNodes[leafNodeCount] = {};
+
+/**
+ * @brief Whether a duplicate has been found.
+ */
+bool duplicateFound = false;
+
+/**
+ * @brief Checks whether there are any duplicates in a subset of the buffer.
+ * @param buffer File buffer.
+ * @param startPos Position in the buffer to start at.
+ * @param ensPos Position in the buffer to end at.
+ */
+void duplicateThread(const char* buffer, long startPos, long endPos) {
+    // Loop through all the lines.
+    for (long i = startPos; i < endPos; i += 8) {
+        // Find tree index.
+        unsigned int index = (buffer[i]   - 'A') * 10 * 10 * 10 * 26 * 26
+                           + (buffer[i+1] - 'A') * 10 * 10 * 10 * 26
+                           + (buffer[i+2] - 'A') * 10 * 10 * 10
+                           + (buffer[i+3] - '0') * 10 * 10
+                           + (buffer[i+4] - '0') * 10
+                           + (buffer[i+5] - '0');
+        
+        // Check if number has already been marked.
+        leafNodes[index].fetch_add(1, std::memory_order_relaxed);
+        
+        if (leafNodes[index].load(std::memory_order_relaxed) > 1) {
+            duplicateFound = true;
+            return;
+        }
+    }
+}
 
 /**
  * @brief Checks whether the file contains any duplicate entries.
@@ -32,25 +67,20 @@ bool duplicates(const char* filename) {
     fread(buffer, 1, length, file);
     fclose(file);
     
-    // Loop through all the lines.
-    for (long i=0; i<length; i+=8) {
-        // Find tree index.
-        unsigned int index = (buffer[i]   - 'A') * 10 * 10 * 10 * 26 * 26
-                           + (buffer[i+1] - 'A') * 10 * 10 * 10 * 26
-                           + (buffer[i+2] - 'A') * 10 * 10 * 10
-                           + (buffer[i+3] - '0') * 10 * 10
-                           + (buffer[i+4] - '0') * 10
-                           + (buffer[i+5] - '0');
-        
-        // Check if number has already been marked.
-        if (leafNodes[index])
-            return true;
-        
-        // Otherwise, mark it.
-        leafNodes[index] = true;
-    }
+    // Check for duplicates.
+    duplicateFound = false;
+    long len2 = length / 8;
+    long len3 = len2 / 3 * 8;
+    thread thread1(std::bind(&duplicateThread, buffer, 0, len3));
+    thread thread2(std::bind(&duplicateThread, buffer, len3, len3 * 2));
+    thread thread3(std::bind(&duplicateThread, buffer, len3 * 2, length));
     
-    return false;
+    // Clean up and return results.
+    thread1.join();
+    thread2.join();
+    thread3.join();
+    delete[] buffer;
+    return duplicateFound;
 }
 
 /**
@@ -65,7 +95,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     
-    const int times = 10;
+    const int times = 20;
     
     // Get start time.
     chrono::time_point<chrono::high_resolution_clock> start = chrono::high_resolution_clock::now();;
