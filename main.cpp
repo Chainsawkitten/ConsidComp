@@ -28,9 +28,14 @@ char* buffer;
 bool duplicateFound = false;
 
 /**
+ * @brief Indices of the leaf nodes.
+ */
+unsigned int* indices;
+
+/**
  * @brief Which threads are done executing.
  */
-bool threadDone[3];
+bool threadDone[3] = {};
 
 /**
  * @brief Checks whether there are any duplicates in a subset of the buffer.
@@ -39,20 +44,19 @@ bool threadDone[3];
  * @param threadIndex The index of the executing thread.
  */
 void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
-    unsigned int* indices = new unsigned int[(endPos - startPos) / 8];
-    
     // Loop through all the lines.
-    for (long i = startPos; i < endPos; i += 8) {
+    for (long i = startPos; i < endPos; ++i) {
         // Find tree index.
-        indices[(i - startPos) / 8] = (buffer[i]   - 'A') * 10 * 10 * 10 * 26 * 26
-                       + (buffer[i+1] - 'A') * 10 * 10 * 10 * 26
-                       + (buffer[i+2] - 'A') * 10 * 10 * 10
-                       + (buffer[i+3] - '0') * 10 * 10
-                       + (buffer[i+4] - '0') * 10
-                       + (buffer[i+5] - '0');
+        long bufferIndex = i * 8;
+        indices[i] = (buffer[bufferIndex]   - 'A') * 10 * 10 * 10 * 26 * 26
+                   + (buffer[bufferIndex+1] - 'A') * 10 * 10 * 10 * 26
+                   + (buffer[bufferIndex+2] - 'A') * 10 * 10 * 10
+                   + (buffer[bufferIndex+3] - '0') * 10 * 10
+                   + (buffer[bufferIndex+4] - '0') * 10
+                   + (buffer[bufferIndex+5] - '0');
         
         // Mark tree node as our index.
-        leafNodes[indices[(i - startPos) / 8]] = threadIndex;
+        leafNodes[indices[i]] = threadIndex;
     }
     
     // Signal that we're done.
@@ -65,9 +69,9 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
     }
     
     // Check if someone has modified our tree nodes.
-    for (long i = startPos; i < endPos; i += 8) {
+    for (long i = startPos; i < endPos; ++i) {
         // Check if someone has modified our tree node.
-        if (leafNodes[indices[(i - startPos) / 8]] != threadIndex) {
+        if (leafNodes[indices[i]] != threadIndex) {
             duplicateFound = true;
             return;
         }
@@ -94,16 +98,18 @@ bool duplicates(const char* filename) {
     // Check for duplicates.
     duplicateFound = false;
     long len2 = length / 8;
-    long len3 = len2 / 3 * 8;
+    long len3 = len2 / 3;
+    indices = new unsigned int[len2];
     thread thread1(std::bind(&duplicateThread, 0, len3, 0));
     thread thread2(std::bind(&duplicateThread, len3, len3 * 2, 1));
-    thread thread3(std::bind(&duplicateThread, len3 * 2, length, 2));
+    thread thread3(std::bind(&duplicateThread, len3 * 2, len2, 2));
     
     // Clean up and return results.
     thread1.join();
     thread2.join();
     thread3.join();
     delete[] buffer;
+    delete[] indices;
     return duplicateFound;
 }
 
