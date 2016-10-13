@@ -90,6 +90,10 @@ int main(int argc, char** argv) {
 	//	return 0;
 	//}
 
+	// Clear whether threads have finished between runs.
+	// Can be skipped assuming this is run as a program rather than as a function.
+	//memset(threadDone, 0, sizeof(bool) * 8);
+
 	// Read the entire file into RAM.
 	FILE* file = fopen(argv[1], "rb");
 	fseek(file, 0, SEEK_END);

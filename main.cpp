@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     
     // Perform the program.
     for (int i=0; i<times; ++i) {
-        memset(threadDone, 0, sizeof(unsigned char) * 8);
+        memset(threadDone, 0, sizeof(bool) * 8);
         cout << (duplicates(argv[1]) ? "Dubbletter" : "Ej dubblett") << endl;
     }
     
