@@ -13,7 +13,7 @@ const unsigned int leafNodeCount = 17576000;
 /**
 * @brief The tree leaf nodes.
 */
-unsigned char leafNodes[leafNodeCount] = {};
+unsigned char leafNodes[leafNodeCount];
 
 /**
 * @brief Buffer that the data file is read into.

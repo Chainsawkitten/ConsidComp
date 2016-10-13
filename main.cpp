@@ -15,7 +15,7 @@ const unsigned int leafNodeCount = 17576000;
 /**
  * @brief The tree leaf nodes.
  */
-unsigned char leafNodes[leafNodeCount] = {};
+unsigned char leafNodes[leafNodeCount];
 
 /**
  * @brief Buffer that the data file is read into.
@@ -144,7 +144,6 @@ int main(int argc, char** argv) {
     
     // Perform the program.
     for (int i=0; i<times; ++i) {
-        memset(leafNodes, 0, sizeof(bool) * leafNodeCount);
         memset(threadDone, 0, sizeof(unsigned char) * 8);
         cout << (duplicates(argv[1]) ? "Dubbletter" : "Ej dubblett") << endl;
     }
