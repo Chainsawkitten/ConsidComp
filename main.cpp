@@ -35,7 +35,7 @@ unsigned int* indices;
 /**
  * @brief Which threads are done executing.
  */
-bool threadDone[4] = {};
+bool threadDone[8] = {};
 
 /**
  * @brief Checks whether there are any duplicates in a subset of the buffer.
@@ -63,7 +63,7 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
     threadDone[threadIndex] = true;
     
     // Wait for all threads to finish.
-    for (unsigned char i=0; i<4; ++i) {
+    for (unsigned char i=0; i<8; ++i) {
         while (!threadDone[i])
             this_thread::yield();
     }
@@ -98,18 +98,28 @@ bool duplicates(const char* filename) {
     // Check for duplicates.
     duplicateFound = false;
     long len2 = length / 8;
-    long lengthPerThread = len2 / 4;
+    long lengthPerThread = len2 / 8;
     indices = new unsigned int[len2];
+
+	// Create 8 threads (manual loop unrolling).
     thread thread1(std::bind(&duplicateThread, 0, lengthPerThread, 0));
     thread thread2(std::bind(&duplicateThread, lengthPerThread, lengthPerThread * 2, 1));
     thread thread3(std::bind(&duplicateThread, lengthPerThread * 2, lengthPerThread * 3, 2));
-	thread thread4(std::bind(&duplicateThread, lengthPerThread * 3, len2, 3));
+	thread thread4(std::bind(&duplicateThread, lengthPerThread * 3, lengthPerThread * 4, 3));
+	thread thread5(std::bind(&duplicateThread, lengthPerThread * 4, lengthPerThread * 5, 4));
+	thread thread6(std::bind(&duplicateThread, lengthPerThread * 5, lengthPerThread * 6, 5));
+	thread thread7(std::bind(&duplicateThread, lengthPerThread * 6, lengthPerThread * 7, 6));
+	thread thread8(std::bind(&duplicateThread, lengthPerThread * 7, len2, 7));
     
     // Clean up and return results.
     thread1.join();
     thread2.join();
     thread3.join();
 	thread4.join();
+	thread5.join();
+	thread6.join();
+	thread7.join();
+	thread8.join();
     delete[] buffer;
     delete[] indices;
     return duplicateFound;
@@ -135,7 +145,7 @@ int main(int argc, char** argv) {
     // Perform the program.
     for (int i=0; i<times; ++i) {
         memset(leafNodes, 0, sizeof(bool) * leafNodeCount);
-        memset(threadDone, 0, sizeof(unsigned char) * 4);
+        memset(threadDone, 0, sizeof(unsigned char) * 8);
         cout << (duplicates(argv[1]) ? "Dubletter" : "Ej dubblett") << endl;
     }
     
