@@ -84,6 +84,12 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
 * @return Return code.
 */
 int main(int argc, char** argv) {
+	// Disable argument checking for speed.
+	//if (argc < 2) {
+	//	cout << "No input file given." << endl;
+	//	return 0;
+	//}
+
 	// Read the entire file into RAM.
 	FILE* file = fopen(argv[1], "rb");
 	fseek(file, 0, SEEK_END);
@@ -124,7 +130,7 @@ int main(int argc, char** argv) {
 	//delete[] buffer;
 	//delete[] indices;
 
-	cout << (duplicateFound ? "Dubletter" : "Ej dubblett") << endl;
+	cout << (duplicateFound ? "Dubbletter" : "Ej dubblett") << endl;
 
 	return 0;
 }

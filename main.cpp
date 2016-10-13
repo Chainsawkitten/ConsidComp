@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
     for (int i=0; i<times; ++i) {
         memset(leafNodes, 0, sizeof(bool) * leafNodeCount);
         memset(threadDone, 0, sizeof(unsigned char) * 8);
-        cout << (duplicates(argv[1]) ? "Dubletter" : "Ej dubblett") << endl;
+        cout << (duplicates(argv[1]) ? "Dubbletter" : "Ej dubblett") << endl;
     }
     
     // Output how long it took.
