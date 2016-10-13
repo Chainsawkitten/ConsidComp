@@ -46,22 +46,23 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
     for (long i = startPos; i < endPos; ++i) {
         // Find tree index.
         long bufferIndex = i * 8;
-        indices[i] = (buffer[bufferIndex]     - 'A') * 10 * 10 * 10 * 26 * 26
-                   + (buffer[bufferIndex + 1] - 'A') * 10 * 10 * 10 * 26
-                   + (buffer[bufferIndex + 2] - 'A') * 10 * 10 * 10
-                   + (buffer[bufferIndex + 3] - '0') * 10 * 10
-                   + (buffer[bufferIndex + 4] - '0') * 10
-                   + (buffer[bufferIndex + 5] - '0');
+        unsigned int index = (buffer[bufferIndex++] - 'A') * 26;
+        index = (index + (buffer[bufferIndex++] - 'A')) * 26;
+        index = (index + (buffer[bufferIndex++] - 'A')) * 10;
+        index = (index + (buffer[bufferIndex++] - '0')) * 10;
+        index = (index + (buffer[bufferIndex++] - '0')) * 10;
+        index += (buffer[bufferIndex] - '0');
+        indices[i] = index;
         
         // Check if this thread has already encountered it.
-        if (leafNodes[indices[i]]) {
+        if (leafNodes[index]) {
             threadDone[threadIndex-1] = true;
             duplicateFound = true;
             return;
         }
         
         // Mark tree node as our index.
-        leafNodes[indices[i]] = threadIndex;
+        leafNodes[index] = threadIndex;
     }
     
     // Signal that we're done.
@@ -106,16 +107,16 @@ int main(int argc, char** argv) {
     fseek(file, 0, SEEK_END);
     long length = ftell(file);
     rewind(file);
+    long len2 = length / 8;
     
-    buffer = new char[length];
+    buffer = (char*) malloc(length * sizeof(char) + len2 * sizeof(unsigned int));
     fread(buffer, 1, length, file);
     fclose(file);
     
     // Check for duplicates.
     duplicateFound = false;
-    long len2 = length / 8;
     long lengthPerThread = len2 / 8;
-    indices = new unsigned int[len2];
+    indices = (unsigned int*) &buffer[length];
     
     // Create 8 threads (manual loop unrolling).
     thread thread1(std::bind(&duplicateThread, 0, lengthPerThread, 1));
@@ -138,8 +139,7 @@ int main(int argc, char** argv) {
     thread8.join();
     
     // Leak memory for speed (the heap will be released when the program exits anyhow).
-    //delete[] buffer;
-    //delete[] indices;
+    //free(buffer);
     
     cout << (duplicateFound ? "Dubbletter" : "Ej dubblett") << endl;
     
