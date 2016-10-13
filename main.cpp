@@ -60,7 +60,7 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
             threadDone[threadIndex] = true;
             duplicateFound = true;
             return;
-        }        
+        }
         
         // Mark tree node as our index.
         leafNodes[indices[i]] = threadIndex;
@@ -109,14 +109,14 @@ bool duplicates(const char* filename) {
     indices = new unsigned int[len2];
     
     // Create 8 threads (manual loop unrolling).
-    thread thread1(std::bind(&duplicateThread, 0, lengthPerThread, 0));
-    thread thread2(std::bind(&duplicateThread, lengthPerThread, lengthPerThread * 2, 1));
-    thread thread3(std::bind(&duplicateThread, lengthPerThread * 2, lengthPerThread * 3, 2));
-    thread thread4(std::bind(&duplicateThread, lengthPerThread * 3, lengthPerThread * 4, 3));
-    thread thread5(std::bind(&duplicateThread, lengthPerThread * 4, lengthPerThread * 5, 4));
-    thread thread6(std::bind(&duplicateThread, lengthPerThread * 5, lengthPerThread * 6, 5));
-    thread thread7(std::bind(&duplicateThread, lengthPerThread * 6, lengthPerThread * 7, 6));
-    thread thread8(std::bind(&duplicateThread, lengthPerThread * 7, len2, 7));
+    thread thread1(std::bind(&duplicateThread, 0, lengthPerThread, 1));
+    thread thread2(std::bind(&duplicateThread, lengthPerThread, lengthPerThread * 2, 2));
+    thread thread3(std::bind(&duplicateThread, lengthPerThread * 2, lengthPerThread * 3, 3));
+    thread thread4(std::bind(&duplicateThread, lengthPerThread * 3, lengthPerThread * 4, 4));
+    thread thread5(std::bind(&duplicateThread, lengthPerThread * 4, lengthPerThread * 5, 5));
+    thread thread6(std::bind(&duplicateThread, lengthPerThread * 5, lengthPerThread * 6, 6));
+    thread thread7(std::bind(&duplicateThread, lengthPerThread * 6, lengthPerThread * 7, 7));
+    thread thread8(std::bind(&duplicateThread, lengthPerThread * 7, len2, 8));
     
     // Clean up and return results.
     thread1.join();
