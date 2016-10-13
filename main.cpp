@@ -55,6 +55,13 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
                    + (buffer[bufferIndex+4] - '0') * 10
                    + (buffer[bufferIndex+5] - '0');
         
+        // Check if this thread has already encountered it.
+        if (leafNodes[indices[i]]) {
+            threadDone[threadIndex] = true;
+            duplicateFound = true;
+            return;
+        }        
+        
         // Mark tree node as our index.
         leafNodes[indices[i]] = threadIndex;
     }
@@ -100,26 +107,26 @@ bool duplicates(const char* filename) {
     long len2 = length / 8;
     long lengthPerThread = len2 / 8;
     indices = new unsigned int[len2];
-
-	// Create 8 threads (manual loop unrolling).
+    
+    // Create 8 threads (manual loop unrolling).
     thread thread1(std::bind(&duplicateThread, 0, lengthPerThread, 0));
     thread thread2(std::bind(&duplicateThread, lengthPerThread, lengthPerThread * 2, 1));
     thread thread3(std::bind(&duplicateThread, lengthPerThread * 2, lengthPerThread * 3, 2));
-	thread thread4(std::bind(&duplicateThread, lengthPerThread * 3, lengthPerThread * 4, 3));
-	thread thread5(std::bind(&duplicateThread, lengthPerThread * 4, lengthPerThread * 5, 4));
-	thread thread6(std::bind(&duplicateThread, lengthPerThread * 5, lengthPerThread * 6, 5));
-	thread thread7(std::bind(&duplicateThread, lengthPerThread * 6, lengthPerThread * 7, 6));
-	thread thread8(std::bind(&duplicateThread, lengthPerThread * 7, len2, 7));
+    thread thread4(std::bind(&duplicateThread, lengthPerThread * 3, lengthPerThread * 4, 3));
+    thread thread5(std::bind(&duplicateThread, lengthPerThread * 4, lengthPerThread * 5, 4));
+    thread thread6(std::bind(&duplicateThread, lengthPerThread * 5, lengthPerThread * 6, 5));
+    thread thread7(std::bind(&duplicateThread, lengthPerThread * 6, lengthPerThread * 7, 6));
+    thread thread8(std::bind(&duplicateThread, lengthPerThread * 7, len2, 7));
     
     // Clean up and return results.
     thread1.join();
     thread2.join();
     thread3.join();
-	thread4.join();
-	thread5.join();
-	thread6.join();
-	thread7.join();
-	thread8.join();
+    thread4.join();
+    thread5.join();
+    thread6.join();
+    thread7.join();
+    thread8.join();
     delete[] buffer;
     delete[] indices;
     return duplicateFound;
