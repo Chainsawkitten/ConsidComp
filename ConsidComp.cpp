@@ -46,12 +46,12 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
 	for (long i = startPos; i < endPos; ++i) {
 		// Find tree index.
 		long bufferIndex = i * 8;
-		indices[i] = (buffer[bufferIndex] - 'A') * 10 * 10 * 10 * 26 * 26
-			+ (buffer[bufferIndex + 1] - 'A') * 10 * 10 * 10 * 26
-			+ (buffer[bufferIndex + 2] - 'A') * 10 * 10 * 10
-			+ (buffer[bufferIndex + 3] - '0') * 10 * 10
-			+ (buffer[bufferIndex + 4] - '0') * 10
-			+ (buffer[bufferIndex + 5] - '0');
+		indices[i] = (buffer[bufferIndex]     - 'A') * 10 * 10 * 10 * 26 * 26
+			       + (buffer[bufferIndex + 1] - 'A') * 10 * 10 * 10 * 26
+			       + (buffer[bufferIndex + 2] - 'A') * 10 * 10 * 10
+			       + (buffer[bufferIndex + 3] - '0') * 10 * 10
+			       + (buffer[bufferIndex + 4] - '0') * 10
+			       + (buffer[bufferIndex + 5] - '0');
 
 		// Mark tree node as our index.
 		leafNodes[indices[i]] = threadIndex;
