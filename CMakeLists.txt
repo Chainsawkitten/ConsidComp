@@ -8,6 +8,10 @@ if(UNIX OR MINGW)
     set(CMAKE_CXX_FLAGS "-g -O3 -gdwarf-2 -static-libstdc++ -Wall")
 endif()
 
-add_executable(ConsidComp main.cpp)
+add_executable(ConsidCompTest main.cpp)
+set_property(TARGET ConsidCompTest PROPERTY CXX_STANDARD 11)
+set_property(TARGET ConsidCompTest PROPERTY CXX_STANDARD_REQUIRED ON)
+
+add_executable(ConsidComp ConsidComp.cpp)
 set_property(TARGET ConsidComp PROPERTY CXX_STANDARD 11)
 set_property(TARGET ConsidComp PROPERTY CXX_STANDARD_REQUIRED ON)
