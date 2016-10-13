@@ -35,7 +35,7 @@ unsigned int* indices;
 /**
  * @brief Which threads are done executing.
  */
-bool threadDone[3] = {};
+bool threadDone[4] = {};
 
 /**
  * @brief Checks whether there are any duplicates in a subset of the buffer.
@@ -63,7 +63,7 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
     threadDone[threadIndex] = true;
     
     // Wait for all threads to finish.
-    for (unsigned char i=0; i<3; ++i) {
+    for (unsigned char i=0; i<4; ++i) {
         while (!threadDone[i])
             this_thread::yield();
     }
@@ -98,16 +98,18 @@ bool duplicates(const char* filename) {
     // Check for duplicates.
     duplicateFound = false;
     long len2 = length / 8;
-    long len3 = len2 / 3;
+    long lengthPerThread = len2 / 4;
     indices = new unsigned int[len2];
-    thread thread1(std::bind(&duplicateThread, 0, len3, 0));
-    thread thread2(std::bind(&duplicateThread, len3, len3 * 2, 1));
-    thread thread3(std::bind(&duplicateThread, len3 * 2, len2, 2));
+    thread thread1(std::bind(&duplicateThread, 0, lengthPerThread, 0));
+    thread thread2(std::bind(&duplicateThread, lengthPerThread, lengthPerThread * 2, 1));
+    thread thread3(std::bind(&duplicateThread, lengthPerThread * 2, lengthPerThread * 3, 2));
+	thread thread4(std::bind(&duplicateThread, lengthPerThread * 3, len2, 3));
     
     // Clean up and return results.
     thread1.join();
     thread2.join();
     thread3.join();
+	thread4.join();
     delete[] buffer;
     delete[] indices;
     return duplicateFound;
@@ -125,7 +127,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     
-    const int times = 20;
+    const int times = 200;
     
     // Get start time.
     chrono::time_point<chrono::high_resolution_clock> start = chrono::high_resolution_clock::now();;
@@ -133,7 +135,7 @@ int main(int argc, char** argv) {
     // Perform the program.
     for (int i=0; i<times; ++i) {
         memset(leafNodes, 0, sizeof(bool) * leafNodeCount);
-        memset(threadDone, 0, sizeof(unsigned char) * 3);
+        memset(threadDone, 0, sizeof(unsigned char) * 4);
         cout << (duplicates(argv[1]) ? "Dubletter" : "Ej dubblett") << endl;
     }
     
