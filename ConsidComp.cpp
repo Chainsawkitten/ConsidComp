@@ -55,7 +55,7 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
         
         // Check if this thread has already encountered it.
         if (leafNodes[indices[i]]) {
-            threadDone[threadIndex] = true;
+            threadDone[threadIndex-1] = true;
             duplicateFound = true;
             return;
         }
@@ -65,7 +65,7 @@ void duplicateThread(long startPos, long endPos, unsigned char threadIndex) {
     }
     
     // Signal that we're done.
-    threadDone[threadIndex] = true;
+    threadDone[threadIndex-1] = true;
     
     // Wait for all threads to finish.
     for (unsigned char i = 0; i<8; ++i) {
@@ -97,7 +97,6 @@ int main(int argc, char** argv) {
     //	return 0;
     //}
     
-    // Clear whether threads have finished between runs.
     // Can be skipped assuming this is run as a program rather than as a function.
     //memset(leafNodes, 0, sizeof(unsigned char) * leafNodeCount);
     //memset(threadDone, 0, sizeof(bool) * 8);
