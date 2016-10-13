@@ -43,13 +43,16 @@ bool duplicates(const char* filename) {
                            + (buffer[i+5] - '0');
         
         // Check if number has already been marked.
-        if (leafNodes[index])
-            return true;
+		if (leafNodes[index]) {
+			delete[] buffer;
+			return true;
+		}
         
         // Otherwise, mark it.
         leafNodes[index] = true;
     }
     
+	delete[] buffer;
     return false;
 }
 
@@ -65,7 +68,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     
-    const int times = 10;
+    const int times = 20;
     
     // Get start time.
     chrono::time_point<chrono::high_resolution_clock> start = chrono::high_resolution_clock::now();;
